@@ -202,6 +202,7 @@ class CDVNewContactsController: CNContactViewController {
         viewController.present(pickerController, animated: true) {() -> Void in }
     }
     
+    @objc(pickContact:)
     func pickContact(_ command: CDVInvokedUrlCommand) {
         checkContactPermission()
         let newCommand = CDVInvokedUrlCommand(arguments: command.arguments, callbackId: command.callbackId, className: command.className, methodName: command.methodName)
@@ -339,6 +340,7 @@ class CDVNewContactsController: CNContactViewController {
         })
     }
     
+    @objc(search:)
     func search(_ command: CDVInvokedUrlCommand) {
         checkContactPermission()
         let callbackId: String = command.callbackId
