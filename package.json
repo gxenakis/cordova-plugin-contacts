@@ -58,9 +58,10 @@
   "cordova": {
     "plugins": {
       "cordova-plugin-add-swift-support": {
-        "USESWIFTLANGUAGEVERSION": 4
+        "USESWIFTLANGUAGEVERSION": 4,
+        "version": "~1.7.2"
       }
-  	}
+    }
   },
   "devDependencies": {
     "jshint": "^2.6.0"
