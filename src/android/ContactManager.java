@@ -243,92 +243,30 @@ public class ContactManager extends CordovaPlugin {
         if (requestCode == CONTACT_PICKER_RESULT) {
             if (resultCode == Activity.RESULT_OK) {
                 String contactId = intent.getData().getLastPathSegment();
-                final CallbackContext localCallbackContext = this.callbackContext;
-
                 // to populate contact data we require  Raw Contact ID
                 // so we do look up for contact raw id first
                 Cursor c =  this.cordova.getActivity().getContentResolver().query(RawContacts.CONTENT_URI,
-                        new String[] {RawContacts._ID}, RawContacts.CONTACT_ID + " = " + contactId, null, null);
+                            new String[] {RawContacts._ID}, RawContacts.CONTACT_ID + " = " + contactId, null, null);
                 if (!c.moveToFirst()) {
                     this.callbackContext.error("Error occured while retrieving contact raw id");
                     return;
                 }
-                final String rawContactId = c.getString(c.getColumnIndex(RawContacts._ID));
+                String id = c.getString(c.getColumnIndex(RawContacts._ID));
                 c.close();
-				
-				// query for emails for the selected contact id
-                Cursor e = this.cordova.getActivity().getContentResolver().query(
-				    ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
-                        ContactsContract.CommonDataKinds.Email.CONTACT_ID + "=?",
-				    new String[]{contactId}, null);
 
-				int emailIdx = e.getColumnIndex(ContactsContract.CommonDataKinds.Email.ADDRESS);
-				int emailType = e.getColumnIndex(ContactsContract.CommonDataKinds.Email.TYPE);
-				
-				if(e.getCount() > 1) { // contact has multiple emails
-				    final CharSequence[] emails = new CharSequence[e.getCount()];
-				    int i=0;
-				    if(e.moveToFirst()) {
-				        while(!e.isAfterLast()) { // for each email, add it to the emails array
-				            String type = (String) ContactsContract.CommonDataKinds.Email.getTypeLabel(this.cordova.getActivity().getResources(), e.getInt(emailType), ""); // insert a type string in front of the email
-				            String address = type + ": " + e.getString(emailIdx);
-				            emails[i++] = address;
-				            e.moveToNext();
-				        }
-				        e.close();
-				        // build and show a simple dialog that allows the user to select a email
-				        AlertDialog.Builder builder = new AlertDialog.Builder(this.cordova.getActivity());
-				        builder.setTitle("Select an Email");
-				        builder.setItems(emails, new DialogInterface.OnClickListener() {
-
-				            @Override
-				            public void onClick(DialogInterface dialog, int item) {
-				                String email = (String) emails[item];
-                                String[] parts = email.split(":");
-                                String val = parts[1].trim();
-
-                                try {
-                                    JSONObject contact = contactAccessor.getContactById(rawContactId);
-                                    JSONArray a = contact.getJSONArray("emails");
-                                    for (int i = 0 ; i < a.length(); i++) {
-                                        JSONObject obj = a.getJSONObject(i);
-                                        String match = obj.getString("value");
-                                        if (match.equals(val)) {
-                                            JSONArray newEmails = new JSONArray();
-                                            newEmails.put(obj);
-                                            contact.put("emails", newEmails);
-                                        }
-                                    }
-                                    callbackContext.success(contact);
-                                    return;
-                                } catch (JSONException err) {
-                                    LOG.e(LOG_TAG, "JSON fail.", err);
-                                }
-				            }
-				        });
-				        AlertDialog alert = builder.create();
-				        alert.setOwnerActivity(this.cordova.getActivity());
-				        alert.show();
-
-				    } else LOG.w(LOG_TAG, "No results");
-				} else if(e.getCount() == 1) {
-                    // contact has a single email address, so there's no need to display a second dialog
-                    e.close();
-
-                    try {
-                        JSONObject contact = contactAccessor.getContactById(rawContactId);
-                        this.callbackContext.success(contact);
-                        return;
-                    } catch (JSONException err) {
-                        LOG.e(LOG_TAG, "JSON fail.", err);
-                    }
+                try {
+                    JSONObject contact = contactAccessor.getContactById(id);
+                    this.callbackContext.success(contact);
+                    return;
+                } catch (JSONException e) {
+                    LOG.e(LOG_TAG, "JSON fail.", e);
                 }
             } else if (resultCode == Activity.RESULT_CANCELED) {
                 callbackContext.error(OPERATION_CANCELLED_ERROR);
                 return;
-            } else {
-                this.callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, UNKNOWN_ERROR));
             }
+
+            this.callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, UNKNOWN_ERROR));
         }
     }
 
