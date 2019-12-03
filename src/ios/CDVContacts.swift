@@ -185,9 +185,14 @@ class CDVNewContactsController: CNContactViewController {
                 if let string = field as? String {
                     if string == "emails" {
                         pickerController.displayedPropertyKeys = [CNContactEmailAddressesKey];
-                        pickerController.predicateForEnablingContact = NSPredicate(format: "emailAddresses.@count > 0 || phoneNumbers.@count > 0")
+                        pickerController.predicateForEnablingContact = NSPredicate(format: "emailAddresses.@count > 0")
                         pickerController.predicateForSelectionOfContact = NSPredicate(format: "emailAddresses.@count == 1")
                         pickerController.predicateForSelectionOfProperty = NSPredicate(format: "key == 'emailAddresses'")
+                    } else if string == "phoneNumbers" {
+                        pickerController.displayedPropertyKeys = [CNContactPhoneNumbersKey];
+                        pickerController.predicateForEnablingContact = NSPredicate(format: "phoneNumbers.@count > 0")
+                        pickerController.predicateForSelectionOfContact = NSPredicate(format: "phoneNumbers.@count == 1")
+                        pickerController.predicateForSelectionOfProperty = NSPredicate(format: "key == 'phoneNumbers'")
                     }
                 }
             }
